@@ -50,10 +50,11 @@
       align-items: center;
       justify-content: center;
       background: #0d0406;
-      transition: opacity 0.7s ease, visibility 0.7s ease;
+      transition: opacity 0.65s ease, visibility 0.65s ease;
     }
 
     #door-overlay.hidden-stage {
+      display: none !important;
       opacity: 0;
       visibility: hidden;
       pointer-events: none;
@@ -67,10 +68,11 @@
       background: linear-gradient(160deg, #4b1420 0%, #26080f 65%, #160408 100%);
       border: 2px solid rgba(230, 194, 122, 0.45);
       box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.75);
-      transition: transform 1.15s cubic-bezier(0.77, 0, 0.175, 1);
+      transition: transform 1.05s cubic-bezier(0.77, 0, 0.175, 1);
       display: flex;
       align-items: center;
       z-index: 1000;
+      pointer-events: none;
     }
 
     .door-left {
@@ -103,20 +105,22 @@
 
     .door-cta {
       position: relative;
-      z-index: 1001;
+      z-index: 1005;
       text-align: center;
       padding: 28px 32px;
       border-radius: 20px;
-      background: rgba(20, 6, 10, 0.85);
-      border: 1px solid rgba(230, 194, 122, 0.65);
+      background: rgba(20, 6, 10, 0.92);
+      border: 1px solid rgba(230, 194, 122, 0.7);
       box-shadow: 0 15px 45px rgba(0, 0, 0, 0.65);
       cursor: pointer;
       max-width: 90vw;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: rgba(230, 194, 122, 0.25);
       transition: transform 0.25s ease, opacity 0.4s ease;
     }
 
-    .door-cta:hover {
-      transform: scale(1.03);
+    .door-cta:active {
+      transform: scale(0.98);
     }
 
     #door-overlay.open .door-cta {
@@ -143,15 +147,16 @@
 
     .open-btn {
       display: inline-block;
-      padding: 10px 26px;
+      padding: 11px 28px;
       border-radius: 999px;
       background: linear-gradient(135deg, var(--gold), #c69749);
       color: #1c080d;
       font-family: 'Cinzel', serif;
       font-weight: 700;
-      font-size: 0.9rem;
+      font-size: 0.92rem;
       letter-spacing: 1.5px;
       text-transform: uppercase;
+      pointer-events: none;
     }
 
     /* ================= AUTO CURTAIN OVERLAY ================= */
@@ -159,16 +164,15 @@
       position: fixed;
       inset: 0;
       z-index: 950;
-      display: flex;
+      display: none;
       pointer-events: none;
       opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.5s ease, visibility 0.5s ease;
+      transition: opacity 0.45s ease;
     }
 
     #curtain-overlay.active {
+      display: flex;
       opacity: 1;
-      visibility: visible;
     }
 
     .curtain-side {
@@ -181,7 +185,7 @@
         #540c1c 34px
       );
       box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.65);
-      transition: transform 1.35s cubic-bezier(0.65, 0, 0.35, 1);
+      transition: transform 1.25s cubic-bezier(0.65, 0, 0.35, 1);
     }
 
     #curtain-overlay.slide-away .curtain-left {
@@ -445,7 +449,7 @@
     <div class="door-panel door-right">
       <div class="door-ornament"></div>
     </div>
-    <div class="door-cta" id="open-door-btn">
+    <div class="door-cta" id="open-door-btn" role="button" tabindex="0">
       <small>Royal Wedding Invitation</small>
       <h2>Kareena &amp; Jamshed</h2>
       <span class="open-btn">Tap To Open</span>
@@ -557,9 +561,14 @@
     const doorOverlay = document.getElementById('door-overlay');
     const openDoorBtn = document.getElementById('open-door-btn');
     const curtainOverlay = document.getElementById('curtain-overlay');
+    let doorOpened = false;
 
-    openDoorBtn.addEventListener('click', () => {
+    function unlockInvitation() {
+      if (doorOpened) return;
+      doorOpened = true;
+
       doorOverlay.classList.add('open');
+      document.body.classList.remove('locked');
 
       setTimeout(() => {
         curtainOverlay.classList.add('active');
@@ -568,20 +577,27 @@
             curtainOverlay.classList.add('slide-away');
           });
         });
-      }, 650);
+      }, 450);
 
       setTimeout(() => {
         doorOverlay.classList.add('hidden-stage');
-        document.body.classList.remove('locked');
-      }, 1350);
+      }, 1150);
 
       setTimeout(() => {
         curtainOverlay.classList.remove('active', 'slide-away');
-      }, 2200);
+      }, 1900);
+    }
+
+    openDoorBtn.addEventListener('click', unlockInvitation);
+    openDoorBtn.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      unlockInvitation();
+    }, { passive: false });
+    doorOverlay.addEventListener('click', (e) => {
+      if (e.target === doorOverlay) unlockInvitation();
     });
 
     // ================= COUNTDOWN TIMER =================
-    // Apni wedding date aur time neeche update kar lena (Format: YYYY-MM-DDTHH:MM:SS)
     const weddingDate = new Date('2026-12-20T18:00:00').getTime();
 
     function updateCountdown() {
@@ -594,3 +610,109 @@
         document.getElementById('minutes').textContent = '00';
         document.getElementById('seconds').textContent = '00';
         return;
+      }
+
+      const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const m = Math.floor((diff / (1000 * 60)) % 60);
+      const s = Math.floor((diff / 1000) % 60);
+
+      document.getElementById('days').textContent = String(d).padStart(2, '0');
+      document.getElementById('hours').textContent = String(h).padStart(2, '0');
+      document.getElementById('minutes').textContent = String(m).padStart(2, '0');
+      document.getElementById('seconds').textContent = String(s).padStart(2, '0');
+    }
+
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+
+    // ================= SCRATCH HEART =================
+    const canvas = document.getElementById('scratch-canvas');
+    const ctx = canvas.getContext('2d');
+    const resetBtn = document.getElementById('reset-scratch-btn');
+    let isDrawing = false;
+    let revealed = false;
+
+    function initScratchLayer() {
+      revealed = false;
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+      grad.addColorStop(0, '#f3d48e');
+      grad.addColorStop(0.5, '#d4a34c');
+      grad.addColorStop(1, '#b88431');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = '#2a0b12';
+      ctx.font = 'bold 17px Cinzel, serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('SCRATCH HERE', canvas.width / 2, canvas.height / 2 - 4);
+      ctx.font = 'italic 16px Cormorant Garamond, serif';
+      ctx.fillText('Rub gently with finger', canvas.width / 2, canvas.height / 2 + 20);
+    }
+
+    function getPointerPos(e) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      return {
+        x: ((clientX - rect.left) / rect.width) * canvas.width,
+        y: ((clientY - rect.top) / rect.height) * canvas.height
+      };
+    }
+
+    function scratchAt(e) {
+      if (!isDrawing || revealed) return;
+      const pos = getPointerPos(e);
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, 22, 0, Math.PI * 2);
+      ctx.fill();
+      checkScratchProgress();
+    }
+
+    function checkScratchProgress() {
+      const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+      let transparentCount = 0;
+      let totalSampled = 0;
+
+      for (let i = 3; i < pixels.length; i += 16) {
+        totalSampled++;
+        if (pixels[i] === 0) transparentCount++;
+      }
+
+      if (transparentCount / totalSampled > 0.52) {
+        revealed = true;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+    }
+
+    canvas.addEventListener('pointerdown', (e) => {
+      isDrawing = true;
+      scratchAt(e);
+    });
+    canvas.addEventListener('pointermove', scratchAt);
+    window.addEventListener('pointerup', () => {
+      isDrawing = false;
+    });
+
+    resetBtn.addEventListener('click', initScratchLayer);
+    initScratchLayer();
+
+    // ================= RSVP WISHES =================
+    const rsvpForm = document.getElementById('rsvp-form');
+    const rsvpStatus = document.getElementById('rsvp-status');
+
+    rsvpForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('guest-name').value.trim();
+      const status = document.getElementById('guest-status').value;
+      if (!name) return;
+      rsvpStatus.textContent = `Thank you, ${name}! Recorded as: ${status}.`;
+      rsvpForm.reset();
+    });
+  </script>
+</body>
+</html>
