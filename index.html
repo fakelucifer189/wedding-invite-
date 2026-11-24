@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kareena &amp; Jamshed — Wedding Invitation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #16090c;
+      --bg-card: #240f15;
+      --gold: #e6c27a;
+      --gold-soft: #f5dfb0;
+      --rose: #b83b56;
+      --cream: #fdf7ec;
+      --text-muted: #d8c2c7;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      background: radial-gradient(circle at top, #2c1018 0%, var(--bg-dark) 70%);
+      color: var(--cream);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body.locked {
+      overflow: hidden;
+      height: 100vh;
+    }
+
+    /* ================= DOOR OVERLAY ================= */
+    #door-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0d0406;
+      transition: opacity 0.7s ease, visibility 0.7s ease;
+    }
+
+    #door-overlay.hidden-stage {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .door-panel {
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      width: 50%;
+      background: linear-gradient(160deg, #4b1420 0%, #26080f 65%, #160408 100%);
+      border: 2px solid rgba(230, 194, 122, 0.45);
+      box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.75);
+      transition: transform 1.15s cubic-bezier(0.77, 0, 0.175, 1);
+      display: flex;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .door-left {
+      left: 0;
+      justify-content: flex-end;
+      border-right: 3px solid var(--gold);
+    }
+
+    .door-right {
+      right: 0;
+      justify-content: flex-start;
+      border-left: 3px solid var(--gold);
+    }
+
+    #door-overlay.open .door-left {
+      transform: translateX(-100%);
+    }
+
+    #door-overlay.open .door-right {
+      transform: translateX(100%);
+    }
+
+    .door-ornament {
+      width: 14px;
+      height: 72%;
+      margin: 0 18px;
+      border: 1px solid rgba(230, 194, 122, 0.4);
+      border-radius: 999px;
+    }
+
+    .door-cta {
+      position: relative;
+      z-index: 1001;
+      text-align: center;
+      padding: 28px 32px;
+      border-radius: 20px;
+      background: rgba(20, 6, 10, 0.85);
+      border: 1px solid rgba(230, 194, 122, 0.65);
+      box-shadow: 0 15px 45px rgba(0, 0, 0, 0.65);
+      cursor: pointer;
+      max-width: 90vw;
+      transition: transform 0.25s ease, opacity 0.4s ease;
+    }
+
+    .door-cta:hover {
+      transform: scale(1.03);
+    }
+
+    #door-overlay.open .door-cta {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .door-cta small {
+      display: block;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--gold);
+      font-family: 'Cinzel', serif;
+      font-size: 0.75rem;
+      margin-bottom: 8px;
+    }
+
+    .door-cta h2 {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(1.35rem, 4vw, 2.1rem);
+      color: var(--gold-soft);
+      margin-bottom: 14px;
+    }
+
+    .open-btn {
+      display: inline-block;
+      padding: 10px 26px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--gold), #c69749);
+      color: #1c080d;
+      font-family: 'Cinzel', serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    /* ================= AUTO CURTAIN OVERLAY ================= */
+    #curtain-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 950;
+      display: flex;
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.5s ease, visibility 0.5s ease;
+    }
+
+    #curtain-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .curtain-side {
+      width: 50%;
+      height: 100%;
+      background: repeating-linear-gradient(
+        90deg,
+        #6f1428 0px,
+        #8e1b34 18px,
+        #540c1c 34px
+      );
+      box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.65);
+      transition: transform 1.35s cubic-bezier(0.65, 0, 0.35, 1);
+    }
+
+    #curtain-overlay.slide-away .curtain-left {
+      transform: translateX(-100%);
+    }
+
+    #curtain-overlay.slide-away .curtain-right {
+      transform: translateX(100%);
+    }
+
+    /* ================= MAIN INVITATION ================= */
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 40px 18px 80px;
+    }
+
+    .card {
+      background: linear-gradient(180deg, rgba(44, 15, 23, 0.92), rgba(24, 9, 13, 0.96));
+      border: 1px solid rgba(230, 194, 122, 0.35);
+      border-radius: 24px;
+      padding: 32px 22px;
+      margin-bottom: 26px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+      text-align: center;
+    }
+
+    .bismillah {
+      font-family: 'Cinzel', serif;
+      color: var(--gold);
+      letter-spacing: 2.5px;
+      font-size: 0.95rem;
+      margin-bottom: 12px;
+    }
+
+    .subtitle {
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .couple-names {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(2rem, 7vw, 3.4rem);
+      color: var(--gold-soft);
+      line-height: 1.2;
+      margin: 10px 0 14px;
+      text-shadow: 0 4px 20px rgba(230, 194, 122, 0.22);
+    }
+
+    .amp {
+      color: #f07b92;
+      font-style: italic;
+      margin: 0 8px;
+    }
+
+    .invite-note {
+      max-width: 600px;
+      margin: 0 auto;
+      font-size: 1.2rem;
+      color: var(--cream);
+    }
+
+    .section-title {
+      font-family: 'Cinzel', serif;
+      color: var(--gold);
+      font-size: 1.45rem;
+      margin-bottom: 18px;
+      letter-spacing: 1px;
+    }
+
+    /* ================= COUNTDOWN ================= */
+    .countdown-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .time-box {
+      background: rgba(16, 5, 8, 0.75);
+      border: 1px solid rgba(230, 194, 122, 0.3);
+      border-radius: 16px;
+      padding: 16px 8px;
+    }
+
+    .time-num {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(1.5rem, 5vw, 2.4rem);
+      font-weight: 700;
+      color: var(--gold-soft);
+      display: block;
+    }
+
+    .time-label {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    /* ================= SCRATCH HEART ================= */
+    .scratch-wrapper {
+      position: relative;
+      width: 290px;
+      height: 270px;
+      margin: 12px auto 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .heart-clip {
+      position: relative;
+      width: 270px;
+      height: 250px;
+      clip-path: path("M135 236 C135 236 18 162 18 76 C18 36 48 10 84 10 C108 10 126 24 135 42 C144 24 162 10 186 10 C222 10 252 36 252 76 C252 162 135 236 135 236 Z");
+      background: linear-gradient(145deg, #8e1b34, #470a18);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .secret-message {
+      position: relative;
+      z-index: 1;
+      padding: 20px 28px;
+      text-align: center;
+      color: #fff8ea;
+      pointer-events: none;
+    }
+
+    .secret-message strong {
+      display: block;
+      font-family: 'Cinzel', serif;
+      font-size: 1.05rem;
+      color: var(--gold-soft);
+      margin-bottom: 6px;
+    }
+
+    .secret-message p {
+      font-size: 1.05rem;
+      line-height: 1.35;
+    }
+
+    #scratch-canvas {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      width: 270px;
+      height: 250px;
+      touch-action: none;
+      cursor: crosshair;
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--gold-soft);
+      border: 1px solid rgba(230, 194, 122, 0.55);
+      padding: 8px 20px;
+      border-radius: 999px;
+      font-family: 'Cinzel', serif;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: background 0.25s ease;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(230, 194, 122, 0.14);
+    }
+
+    /* ================= EVENTS & VENUE ================= */
+    .events-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin-top: 10px;
+    }
+
+    .event-item {
+      background: rgba(16, 5, 8, 0.72);
+      border: 1px solid rgba(230, 194, 122, 0.25);
+      border-radius: 16px;
+      padding: 18px 14px;
+    }
+
+    .event-item h3 {
+      font-family: 'Cinzel', serif;
+      color: var(--gold-soft);
+      font-size: 1.15rem;
+      margin-bottom: 6px;
+    }
+
+    .event-item p {
+      font-size: 1.08rem;
+      color: var(--text-muted);
+    }
+
+    .venue-box {
+      font-size: 1.18rem;
+      line-height: 1.6;
+      color: var(--cream);
+    }
+
+    .rsvp-form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-width: 440px;
+      margin: 0 auto;
+    }
+
+    .rsvp-form input,
+    .rsvp-form select {
+      padding: 11px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(230, 194, 122, 0.35);
+      background: rgba(14, 4, 7, 0.85);
+      color: var(--cream);
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem;
+    }
+
+    .rsvp-btn {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--gold), #c69749);
+      color: #1c080d;
+      font-family: 'Cinzel', serif;
+      font-weight: 700;
+      letter-spacing: 1px;
+      cursor: pointer;
+    }
+
+    #rsvp-status {
+      margin-top: 10px;
+      color: var(--gold-soft);
+      font-size: 1.1rem;
+      min-height: 24px;
+    }
+
+    @media (max-width: 520px) {
+      .countdown-grid {
+        gap: 8px;
+      }
+      .card {
+        padding: 24px 16px;
+      }
+    }
+  </style>
+</head>
+<body class="locked">
+
+  <!-- ROYAL DOOR -->
+  <div id="door-overlay" role="dialog" aria-label="Wedding Entrance">
+    <div class="door-panel door-left">
+      <div class="door-ornament"></div>
+    </div>
+    <div class="door-panel door-right">
+      <div class="door-ornament"></div>
+    </div>
+    <div class="door-cta" id="open-door-btn">
+      <small>Royal Wedding Invitation</small>
+      <h2>Kareena &amp; Jamshed</h2>
+      <span class="open-btn">Tap To Open</span>
+    </div>
+  </div>
+
+  <!-- AUTO CURTAIN -->
+  <div id="curtain-overlay" aria-hidden="true">
+    <div class="curtain-side curtain-left"></div>
+    <div class="curtain-side curtain-right"></div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <main class="container">
+    <section class="card">
+      <div class="bismillah">✦ Together With Their Families ✦</div>
+      <p class="subtitle">Request the pleasure of your gracious presence at the wedding of</p>
+      <h1 class="couple-names">Kareena <span class="amp">&amp;</span> Jamshed</h1>
+      <p class="invite-note">
+        Two hearts, one journey, blessed with love and prayers. Join us as we celebrate our new beginning together.
+      </p>
+    </section>
+
+    <!-- COUNTDOWN TIMER -->
+    <section class="card">
+      <h2 class="section-title">Countdown To The Big Day</h2>
+      <div class="countdown-grid">
+        <div class="time-box">
+          <span class="time-num" id="days">00</span>
+          <span class="time-label">Days</span>
+        </div>
+        <div class="time-box">
+          <span class="time-num" id="hours">00</span>
+          <span class="time-label">Hours</span>
+        </div>
+        <div class="time-box">
+          <span class="time-num" id="minutes">00</span>
+          <span class="time-label">Minutes</span>
+        </div>
+        <div class="time-box">
+          <span class="time-num" id="seconds">00</span>
+          <span class="time-label">Seconds</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCRATCH HEART -->
+    <section class="card">
+      <h2 class="section-title">Scratch The Heart</h2>
+      <p class="subtitle">Scratch the golden heart below to reveal a special note</p>
+
+      <div class="scratch-wrapper">
+        <div class="heart-clip">
+          <div class="secret-message">
+            <strong>Forever &amp; Always</strong>
+            <p>Your presence and dua are our greatest gift. See you at the celebration!</p>
+          </div>
+          <canvas id="scratch-canvas" width="270" height="250"></canvas>
+        </div>
+      </div>
+
+      <button type="button" class="btn-secondary" id="reset-scratch-btn">Reset Heart</button>
+    </section>
+
+    <!-- FUNCTIONS -->
+    <section class="card">
+      <h2 class="section-title">Wedding Celebrations</h2>
+      <div class="events-grid">
+        <div class="event-item">
+          <h3>Mehendi &amp; Sangeet</h3>
+          <p>Date: Edit Date Here</p>
+          <p>Time: 6:00 PM Onwards</p>
+        </div>
+        <div class="event-item">
+          <h3>Nikah Ceremony</h3>
+          <p>Date: Edit Wedding Date</p>
+          <p>Time: 2:00 PM</p>
+        </div>
+        <div class="event-item">
+          <h3>Reception &amp; Dinner</h3>
+          <p>Date: Edit Wedding Date</p>
+          <p>Time: 8:00 PM Onwards</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- VENUE -->
+    <section class="card">
+      <h2 class="section-title">Venue &amp; Blessings</h2>
+      <div class="venue-box">
+        <p><strong>Grand Banquet &amp; Lawns</strong></p>
+        <p>Edit Venue Address &amp; City Here</p>
+      </div>
+
+      <form class="rsvp-form" id="rsvp-form" style="margin-top: 22px;">
+        <input type="text" id="guest-name" placeholder="Your Name" required />
+        <select id="guest-status">
+          <option value="Joyfully Attending">Joyfully Attending</option>
+          <option value="Sending Warm Wishes">Sending Warm Wishes</option>
+        </select>
+        <button type="submit" class="rsvp-btn">Send Wishes</button>
+      </form>
+      <div id="rsvp-status"></div>
+    </section>
+  </main>
+
+  <script>
+    // ================= DOOR -> AUTO CURTAIN =================
+    const doorOverlay = document.getElementById('door-overlay');
+    const openDoorBtn = document.getElementById('open-door-btn');
+    const curtainOverlay = document.getElementById('curtain-overlay');
+
+    openDoorBtn.addEventListener('click', () => {
+      doorOverlay.classList.add('open');
+
+      setTimeout(() => {
+        curtainOverlay.classList.add('active');
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            curtainOverlay.classList.add('slide-away');
+          });
+        });
+      }, 650);
+
+      setTimeout(() => {
+        doorOverlay.classList.add('hidden-stage');
+        document.body.classList.remove('locked');
+      }, 1350);
+
+      setTimeout(() => {
+        curtainOverlay.classList.remove('active', 'slide-away');
+      }, 2200);
+    });
+
+    // ================= COUNTDOWN TIMER =================
+    // Apni wedding date aur time neeche update kar lena (Format: YYYY-MM-DDTHH:MM:SS)
+    const weddingDate = new Date('2026-12-20T18:00:00').getTime();
+
+    function updateCountdown() {
+      const now = new Date().getTime();
+      const diff = weddingDate - now;
+
+      if (diff <= 0) {
+        document.getElementById('days').textContent = '00';
+        document.getElementById('hours').textContent = '00';
+        document.getElementById('minutes').textContent = '00';
+        document.getElementById('seconds').textContent = '00';
+        return;
